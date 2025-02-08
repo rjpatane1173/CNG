@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Pump Owner Login/Register</title>
+
+  <!-- MDB CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.2.0/mdb.min.css" />
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+  
+  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBlJ8aLMFSSlCoAWCMngdxuIHR_HQ1K2dI&callback=initMap&libraries=places,geometry"></script>
+
+  <style>
+    .divider:after, .divider:before {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: #eee;
+    }
+
+    .h-custom {
+      height: calc(100% - 73px);
+    }
+
+    @media (max-width: 450px) {
+      .h-custom {
+        height: 100%;
+      }
+    }
+
+    .form-container {
+      display: none;
+      position: relative;
+      z-index: 1;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 20px;
+      border-radius: 10px;
+    }
+
+    .form-container.active {
+      display: block;
+    }
+
+    #map {
+      height: 400px;
+      width: 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <section class="vh-100">
+    <div class="container-fluid h-custom">
+      <div class="row d-flex justify-content-center align-items-center h-100">
+        <div class="col-md-9 col-lg-6 col-xl-5">
+          <div id="map"></div>
+        </div>
+        <div class="col-md-8 col-lg-6 col-xl-4 offset-xl-1">
+          <div id="loginForm" class="form-container active">
+            <form>
+              <h3>Login to your account</h3>
+              <hr>
+              <div class="form-outline mb-4">
+                <input type="email" id="loginEmail" class="form-control form-control-lg" placeholder="Enter email" />
+                <label class="form-label" for="loginEmail">Email address</label>
+              </div>
+              <div class="form-outline mb-3">
+                <input type="password" id="loginPassword" class="form-control form-control-lg" placeholder="Enter password" />
+                <label class="form-label" for="loginPassword">Password</label>
+              </div>
+              <button type="button" class="btn btn-primary btn-lg btn-block mt-4" onclick="handlePumpOwnerLogin()">Login</button>
+              <p class="small mt-2">Don't have an account? | <a href="javascript:void(0);" class="link-danger" onclick="switchForm('registerForm')">Register</a></p>
+            </form>
+          </div>
+          
+          <div id="registerForm" class="form-container">
+            <form>
+              <h3>Register</h3>
+              <hr>
+              <div class="form-outline mb-4">
+                <input type="text" id="registerName" class="form-control form-control-lg" placeholder="Enter name" />
+                <label class="form-label" for="registerName">Name</label>
+              </div>
+              <div class="form-outline mb-4">
+                <input type="email" id="registerEmail" class="form-control form-control-lg" placeholder="Enter email" />
+                <label class="form-label" for="registerEmail">Email address</label>
+              </div>
+              <div class="form-outline mb-3">
+                <input type="password" id="registerPassword" class="form-control form-control-lg" placeholder="Enter password" />
+                <label class="form-label" for="registerPassword">Password</label>
+              </div>
+              <div class="form-outline mb-3">
+                <input type="text" id="registerPumpName" class="form-control form-control-lg" placeholder="Enter pump name" />
+                <label class="form-label" for="registerPumpName">Pump Name</label>
+              </div>
+              <div class="form-outline mb-3">
+                <input type="number" id="registerLatitude" class="form-control form-control-lg" placeholder="Enter latitude" />
+                <label class="form-label" for="registerLatitude">Latitude</label>
+              </div>
+              <div class="form-outline mb-3">
+                <input type="number" id="registerLongitude" class="form-control form-control-lg" placeholder="Enter longitude" />
+                <label class="form-label" for="registerLongitude">Longitude</label>
+              </div>
+              <button type="button" class="btn btn-primary btn-lg btn-block mt-4" onclick="handlePumpOwnerRegister()">Register</button>
+              <p class="small mt-2">Already have an account? | <a href="javascript:void(0);" class="link-danger" onclick="switchForm('loginForm')">Login</a></p>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    let map;
+    let marker;
+
+    function initMap() {
+      const defaultLocation = { lat: 18.664798, lng: 73.770165 };
+      map = new google.maps.Map(document.getElementById("map"), {
+        center: defaultLocation,
+        zoom: 12,
+      });
+      marker = new google.maps.Marker({
+        position: defaultLocation,
+        map: map,
+        draggable: true,
+      });
+      google.maps.event.addListener(marker, 'dragend', function() {
+        const position = marker.getPosition();
+        document.getElementById('registerLatitude').value = position.lat();
+        document.getElementById('registerLongitude').value = position.lng();
+      });
+      google.maps.event.addListener(map, 'click', function(event) {
+        marker.setPosition(event.latLng);
+        document.getElementById('registerLatitude').value = event.latLng.lat();
+        document.getElementById('registerLongitude').value = event.latLng.lng();
+      });
+    }
+    window.initMap = initMap;
+  </script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.2.0/mdb.min.js"></script>
+  <script src="assets/js/ownerscript.js"></script>
+</body>
+
+</html>

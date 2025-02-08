@@ -1,0 +1,6 @@
+@CNGNavigator_HostAddress = http://localhost:5201
+
+GET {{CNGNavigator_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

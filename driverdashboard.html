@@ -1,0 +1,261 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Driver Dashboard</title>
+    <style>
+        /* General Body Styling */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            font-size: 110%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #76c7e4;
+        }
+
+        /* Navbar */
+        .navbar {
+        padding: 10px;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        background-color: #76c7e4;
+        display: flex;
+        justify-content: flex-end; /* Changed from space-between */
+        align-items: center;
+        z-index: 10;
+    }
+
+        .navbar h1 {
+            margin: 0;
+            font-size: 2rem;
+            color: white;
+        }
+
+        /* Menu Button */
+        #menuButton {
+            padding: 10px;
+            cursor: pointer;
+            font-size: 18px;
+            margin-right: 1%;
+            border-radius: 10px;
+            opacity: 75%;
+            font-weight: bold;
+        }
+
+        /* Dropdown Menu */
+        .menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 10px;
+            background: white;
+            box-shadow: 0px 0px 5px gray;
+            border-radius: 5px;
+            width: 120px;
+        }
+
+        .menu button {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            background: white;
+            cursor: pointer;
+        }
+
+        .menu button:hover {
+            background: lightgray;
+        }
+
+        /* Show menu when active */
+        .menu.show {
+            display: block;
+        }
+
+        /* Main Content Layout */
+        .container {
+            display: flex;
+            flex-direction: row;
+            width: 100%;
+            height: calc(100vh - 60px); /* Subtract navbar height */
+        }
+
+        /* Left Side: Options */
+        .login-section {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            padding: 20px;
+            background: #f6f4df;
+        }
+
+        .login-section button {
+            padding: 15px;
+            font-size: 1.2rem;
+            background-color: #76c7e4;
+            font-weight: bold;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin: 10px;
+            width: 80%;
+            max-width: 300px;
+            border-radius: 5px;
+        }
+
+        .login-section button:hover {
+            background-color: #5b9fb2;
+        }
+
+        /* Right Side: Image Section */
+        .image-section {
+            width: 40%; /* Fixed width for image */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color:#76c7e4;
+        }
+
+        .image-section img {
+            width: 100%;
+            max-width: 600px;
+            border-radius: 10px;
+        }
+
+        /* Dark Mode */
+        .dark-mode {
+            background: #0e151f;
+            color: white;
+        }
+
+        .dark-mode .navbar {
+            background: #131225;
+            color: white;
+        }
+
+        .dark-mode .menu {
+            background:rgb(255, 255, 255);
+            color: white;
+        }
+
+        .dark-mode .menu button {
+            background: #0e151f;
+            color: white;
+        }
+
+        .dark-mode .menu button:hover {
+            background: #666;
+        }
+
+        .dark-mode .login-section {
+            background:#131225;
+        }
+
+        .dark-mode .login-section button {
+            padding: 15px;
+            font-size: 1.2rem;
+            background-color: #b9b8bd;
+            color: black;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            margin: 10px;
+            width: 80%;
+            max-width: 300px;
+            border-radius: 5px;
+            opacity: 75%;
+        }
+
+        .dark-mode .image-section {
+            background-color: #131225;
+        }
+
+        .dark-mode .image-section img {
+            filter: brightness(0.6);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation Bar -->
+    <div class="navbar">
+       
+        <button id="menuButton">☰ Menu</button>
+
+        <!-- Dropdown Menu -->
+        <div id="menuDropdown" class="menu">
+            <button id="toggleTheme">🌙 Theme</button>
+            <button onclick="logoutDriver()">Profile</button>
+           
+            <button id="logoutButton">Logout</button>
+
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Content Layout -->
+    <div class="container">
+        
+        <!-- Left: Options -->
+        <div class="login-section">
+            <button onclick="window.location.href='Map.html'">Plan Trip</button>
+            <button onclick="window.location.href='nearby_pump.html'">Nearby CNG Pumps</button>
+        </div>
+
+        <!-- Right: Image Section -->
+        <div class="image-section">
+            <img id="stationImage" src="assets/img/CNG PUMP light.jpg" alt="CNG Pump Station">
+        </div>
+    </div>
+
+    <script>
+         // Check for saved theme preference on page load
+    window.addEventListener("load", function() {
+        if (localStorage.getItem("theme") === "lighr-mode") {
+            document.body.classList.add("dark-mode");
+            let img = document.getElementById("stationImage");
+            img.src = "CNG PUMP light.jpg";  // Replace with dark mode image
+        }
+    });
+        // Theme Toggle Functionality
+        document.getElementById("toggleTheme").addEventListener("click", function () {
+            document.body.classList.toggle("dark-mode");
+
+            let img = document.getElementById("stationImage");
+            
+            if (document.body.classList.contains("dark-mode")) {
+                img.src = "assets/img/CNG PUMP dark.jpg";  // Replace with your dark mode image
+            } else {
+                img.src = "assets/img/CNG PUMP light.jpg"; // Replace with your light mode image
+            }
+        });
+
+        // Menu Toggle Functionality
+        document.getElementById("menuButton").addEventListener("click", function () {
+            document.getElementById("menuDropdown").classList.toggle("show");
+        });
+
+        // Close menu when clicking outside
+        window.onclick = function (event) {
+            if (!event.target.matches('#menuButton') && !event.target.matches('.menu')) {
+                let dropdowns = document.getElementsByClassName("menu");
+                for (let i = 0; i < dropdowns.length; i++) {
+                    let openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains("show")) {
+                        openDropdown.classList.remove("show");
+                    }
+                }
+            }
+        };
+    </script>
+<script src="assets/js/logout.js"></script>
+</body>
+</html>

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Maps Route Finder</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        #map { height: 500px; width: 100%; margin-top: 20px; }
+        input { padding: 10px; margin: 10px; width: 300px; }
+        button { padding: 10px 20px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
+        #current-location-btn { 
+            position: absolute; 
+            top: 20px; 
+            right: 20px; 
+            background-color: #FF5722; 
+            color: white; 
+            border-radius: 50%; 
+            border: none; 
+            padding: 10px; 
+            cursor: pointer; 
+        }
+        #current-location-btn img { width: 20px; height: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Google Maps Route Finder</h1>
+    <div>
+        <input type="text" id="start" placeholder="Enter start location">
+        <input type="text" id="destination" placeholder="Enter destination">
+        <button onclick="calculateRoute()">Find Route</button>
+    </div>
+    
+    <div>
+        <button onclick="getCurrentLocation()">Use My Current Location</button>
+    </div>
+
+    <div id="map"></div>
+    
+    <!-- Current Location Button -->
+    <button id="current-location-btn" onclick="centerMapToCurrentLocation()">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Font_Awesome_5_solid_location-arrow.svg/1024px-Font_Awesome_5_solid_location-arrow.svg.png" alt="Current Location">
+    </button>
+
+    <!-- Google Maps API Script -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBlJ8aLMFSSlCoAWCMngdxuIHR_HQ1K2dI&callback=initMap&libraries=places,geometry" async defer></script>
+
+    <script>
+      const CONFIGURATION = {
+        "defaultTravelMode": "DRIVING",
+        "distanceMeasurementType": "METRIC",
+        "mapOptions": {
+          "zoom": 18,
+          "zoomControl": true,
+          "maxZoom": 22,
+          "fullscreenControl": true,
+          "mapTypeControl": false,
+          "streetViewControl": false
+        },
+        "mapsApiKey": "AIzaSyBlJ8aLMFSSlCoAWCMngdxuIHR_HQ1K2dI"
+      };
+
+      let map, directionsService, directionsRenderer, autocompleteStart, autocompleteDest, placesService;
+
+      // Function to initialize the map
+      function initMap() {
+        const defaultLat = 18.5204303;  // Default latitude (Pune)
+        const defaultLng = 73.8567437;  // Default longitude (Pune)
+        
+        map = new google.maps.Map(document.getElementById('map'), {
+          ...CONFIGURATION.mapOptions,
+          center: { lat: defaultLat, lng: defaultLng }
+        });
+        directionsService = new google.maps.DirectionsService();
+        directionsRenderer = new google.maps.DirectionsRenderer();
+        directionsRenderer.setMap(map);
+        
+        // To initialise the places API
+        placesService = new google.maps.places.PlacesService(map);
+        // Set up Autocomplete for start and destination input fields
+        autocompleteStart = new google.maps.places.Autocomplete(document.getElementById('start'));
+        autocompleteDest = new google.maps.places.Autocomplete(document.getElementById('destination'));
+        
+        // Restrict the autocomplete search to certain regions
+        autocompleteStart.setComponentRestrictions({ 'country': ['IN'] }); // Set to India
+        autocompleteDest.setComponentRestrictions({ 'country': ['IN'] });
+      }
+
+      function calculateRoute() {
+        const start = document.getElementById('start').value;
+        const destination = document.getElementById('destination').value;
+
+        if (!start || !destination) {
+          alert("Please enter both start and destination!");
+          return;
+        }
+
+        const request = {
+          origin: start,
+          destination: destination,
+          travelMode: google.maps.TravelMode[CONFIGURATION.defaultTravelMode]
+        };
+
+        directionsService.route(request, function(result, status) {
+          if (status === google.maps.DirectionsStatus.OK) {
+            directionsRenderer.setDirections(result);
+            findCNGPumps(result.routes[0].overview_path); // Pass the route path
+            const route = result.routes[0].legs[0];
+            // Dynamically set map center to the start point of the route
+            setMapCenter(route.start_location.lat(), route.start_location.lng());
+          } else {
+            alert('Directions request failed due to ' + status);
+          }
+        });
+      }
+      
+      function findCNGPumps(routePath) {
+        const cngMarkers = [];
+        const radius = 1500; // 500 m radius
+        const markedPlaces = new Set(); // Track already marked places to avoid duplicates
+
+        routePath.forEach((point, index) => {
+          if (index % 10 === 0) { // Process every 10th point to reduce API calls
+            const location = new google.maps.LatLng(point.lat(), point.lng());
+
+            const request = {
+              location: location,
+              radius: radius,
+              keyword: "CNG pump", // Search for CNG pumps
+            };
+
+            // Delay each request to avoid hitting API rate limits
+            setTimeout(() => {
+              placesService.nearbySearch(request, (results, status) => {
+                if (status === google.maps.places.PlacesServiceStatus.OK) {
+                  results.forEach((place) => {
+                    // Filter results to include only those with "CNG" or "MNGL" in the name
+                    if ((place.name.toLowerCase().includes("cng") || place.name.toLowerCase().includes("cng pump") || place.name.toLowerCase().includes("cng station") || place.name.toLowerCase().includes("mngl")) || place.name.toLowerCase().includes("torrent gas") &&
+                        !markedPlaces.has(place.place_id)) {
+                      markedPlaces.add(place.place_id);
+
+                      // Add a marker for each matching CNG pump
+                      const marker = new google.maps.Marker({
+                        position: place.geometry.location,
+                        map: map,
+                        icon: "https://maps.google.com/mapfiles/ms/icons/green-dot.png", // Optional custom icon
+                        title: place.name,
+                      });
+                      cngMarkers.push(marker);
+                    }
+                  });
+                } else {
+                  console.error("PlacesService nearbySearch failed:", status);
+                }
+              });
+            }, index * 10); // Delay to avoid API rate limits
+          }
+        });
+      }
+
+      // Function to set the map center dynamically
+      function setMapCenter(lat, lng) {
+        map.setCenter({ lat, lng });
+      }
+
+      // Function to get user's current location
+      function getCurrentLocation() {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(function(position) {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            // Set the map's center to the current location
+            setMapCenter(lat, lng);
+            // Set the start input field to the current location
+            document.getElementById('start').value = `${lat},${lng}`;
+            alert("Your current location has been set.");
+          }, function() {
+            alert("Geolocation service failed.");
+          }, {
+              enableHighAccuracy: true, // Request high accuracy
+              timeout: 5000,             // Wait up to 5 seconds for location data
+              maximumAge: 0              // Do not use cached location
+            });
+        } else {
+          alert("Geolocation is not supported by your browser.");
+        }
+      }
+
+      // Function to center the map on the current location when button is clicked
+      function centerMapToCurrentLocation() {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(function(position) {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            // Set the map's center to the current location
+            setMapCenter(lat, lng);
+
+            // Set the map zoom level to maximum (22)
+            map.setZoom(22);
+
+            // Place or update the marker on the current location
+            if (currentPositionMarker) {
+              currentPositionMarker.setPosition({ lat, lng });
+            } else {
+              currentPositionMarker = new google.maps.Marker({
+                position: { lat, lng },
+                map: map,
+                title: "You are here",
+                icon: {
+                  url: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Font_Awesome_5_solid_location-arrow.svg/1024px-Font_Awesome_5_solid_location-arrow.svg.png",
+                  scaledSize: new google.maps.Size(30, 30) // Resize icon
+                }
+              });
+            }
+          }, function() {
+            alert("Geolocation service failed.");
+          });
+        } else {
+          alert("Geolocation is not supported by your browser.");
+        }
+      }
+    </script>
+</body>
+</html>

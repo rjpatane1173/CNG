@@ -1,0 +1,12 @@
+# Ignore .vs folder (Visual Studio cache)
+.vs/
+
+# Ignore bin and obj folders (build artifacts)
+bin/
+obj/
+
+# Ignore other system files (optional)
+.vscode/
+*.user
+*.userosscache
+*.suo
